@@ -1,0 +1,61 @@
+### [Jenkins]
+
+http://jenkins.malikatique.com/
+http://18.234.219.85:8080/
+
+
+### [Kubernetes Dashboard]
+https://metrics.malikatique.com/#/login
+
+
+### [burency-react-admin]
+
+http://admin.malikatique.com/
+
+
+### [burency-react-client]
+
+http://burency.malikatique.com/
+
+### [auth-microservice]
+
+http://auth.malikatique.com/
+
+### [banking-engine]
+
+http://banking.malikatique.com/
+
+
+
+### [control-panel-service]
+
+http://cp.malikatique.com/
+
+
+### [files-management-service]
+
+http://fms.malikatique.com/
+
+
+### [logs-service]
+
+http://log.malikatique.com/
+
+
+### [matching-engine]
+
+http://me.malikatique.com/
+
+
+### [notifications-service]
+
+http://ns.malikatique.com/
+
+
+### [user-microservice]
+
+http://user.malikatique.com/
+
+
+### [redis-cluster]
+https://redis.malikatique.com/

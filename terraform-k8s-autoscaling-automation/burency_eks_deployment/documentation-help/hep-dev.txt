@@ -1,0 +1,220 @@
+#####################
+BITBUCKET JENKINS 
+#####################
+
+
+http://burency-ahmed-kabeer:433c3982b5cf44fb8b9ca754a5aecb71@18.234.219.85:8080/bitbucket-hook/
+
+
+http://burency-dev-admin:4992cba65ea344c3a5cd254c7009a884@3.87.102.79:8080/bitbucket-hook/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+aws_load_balancer_controller_arn = "arn:aws:iam::476917393332:role/aws-load-balancer-controller"
+eks_cluster_autoscaler_arn = "arn:aws:iam::476917393332:role/eks-cluster-autoscaler"
+test_policy_arn = "arn:aws:iam::476917393332:role/test-oidc"
+
+
+
+  kubectl delete ing dev-admin
+
+ kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 10.0.117.52:6379 10.0.108.173:6379 10.0.109.36:6379 10.0.118.226:6379 10.0.94.45:6379 10.0.72.93:6379
+
+
+
+
+
+
+
+
+ kubectl delete $(kubectl get pod -l app=control-panel-service-pod -o name) && kubectl logs $(kubectl get pod -l app=control-panel-service-pod -o name)  -f
+ kubectl logs $(kubectl get pod -l app=control-panel-service-pod -o name)  -f
+
+
+ kubectl delete $(kubectl get pod -l app=blockchain-engine-pod -o name)
+ kubectl logs $(kubectl get pod -l app=blockchain-engine-pod -o name)  -f
+
+
+ kubectl delete $(kubectl get pod -l app=user-microservice-pod -o name) && kubectl logs $(kubectl get pod -l app=user-microservice-pod -o name)  -f
+ kubectl logs $(kubectl get pod -l app=user-microservice-pod -o name)  -f
+
+
+ kubectl delete $(kubectl get pod -l app=matching-engine-pod -o name) && kubectl logs $(kubectl get pod -l app=matching-engine-pod -o name)  -f
+ kubectl logs $(kubectl get pod -l app=matching-engine-pod -o name)  -f
+
+
+ kubectl delete $(kubectl get pod -l app=banking-engine-pod -o name)&& kubectl logs $(kubectl get pod -l app=banking-engine-pod -o name)  -f
+ kubectl logs $(kubectl get pod -l app=banking-engine-pod -o name)  -f
+
+
+ kubectl delete $(kubectl get pod -l app=streaming-worker-pod -o name)&& kubectl logs $(kubectl get pod -l app=streaming-worker-pod -o name)  -f
+ kubectl logs $(kubectl get pod -l app=streaming-worker-pod -o name)  -f
+
+
+
+
+
+
+kubectl exec aws-cli -- aws s3api list-buckets
+
+kubectl exec aws-cli -- aws iam create-policy --policy-name AmazonEKS_EBS_CSI_Driver_Policy --policy-document file:///home/asd/Desktop/vaultspay/k8s/ebs/example-iam-policy.json
+
+
+# check autoscaler for errors 
+kubectl logs -l app=cluster-autoscaler -n kube-system -f 
+
+
+
+# Delete all evicted pods
+
+kubectl get pods --all-namespaces | grep Evicted | awk '{print $2, "--namespace", $1}' | xargs kubectl delete pod
+
+kubectl get pod  | grep 0/1 | awk '{print $1}' | xargs kubectl delete pod 
+
+kubectl get deployment  | grep 1/1 | awk '{print $1}' | xargs kubectl delete deployment 
+
+
+
+
+
+
+# Retrive Cluster Ip 
+
+kubectl get service kube-dns -n kube-system
+
+172.20.0.10
+
+# Retrive endpoints exposed by kube-dns 
+
+kubectl get endpoints kube-dns -n kube-system
+
+kubectl get pods -n kube-system -l k8s-app=kube-dns -o wide 
+
+kubectl get pods -n kube-system --selector 'k8s-app=kube-proxy' -o wide 
+
+# To check logs of kube-proxy 
+kubectl logs -n kube-system --selector 'k8s-app=kube-proxy'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###
+Solved Volume Claims Creation Via This 
+https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/install.md
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.18"
+kubectl delete -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.18"
+kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
+###
+
+
+
+
+### Setup Metrics availibility in EKS Cluster 
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/misc/metrics-server.yml
+###
+
+
+
+
+
+
+
+### 
+
+kubectl -n kubernetes-dashboard get serviceaccount kubernetes-dashboard -o jsonpath="{.secret[0].name}"
+kubectl get secret OUTPUT_FROM_LAST_COMMAND -o jsonpath="{.data.token}"
+echo OUTPUT_FROM_LAST_COMMAND | base64 -D
+kubectl get serviceaccount kubernetes-dashboard -o yaml -n kubernetes-dashboard
+kubectl get secret kubernetes-dashboard-token  --namespace=kubernetes-dashboard -o yaml
+
+
+
+
+
+
+
+
+
+
+
+### View logs of any deployment pods with out giving complete pod name 
+
+
+################ LOGS ###################
+
+ kubectl delete $(kubectl get pod -l app=matching-engine-pod -o name)  && kubectl logs $(kubectl get pod -l app=matching-engine-pod -o name)  -f
+
+ kubectl logs $(kubectl get pod -l app=matching-engine-pod -o name)  -f
+
+
+################ LOGS ###################
+
+
+
+kubectl delete pod --all    --force  
+
+
+kubectl delete $(kubectl get pod -l app=matching-engine-pod -o name)  && kubectl logs $(kubectl get pod -l app=matching-engine-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=auth-microservice-pod -o name)  && kubectl logs $(kubectl get pod -l app=auth-microservice-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=banking-engine-pod -o name)  && kubectl logs $(kubectl get pod -l app=banking-engine-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=control-panel-service-pod -o name)  && kubectl logs $(kubectl get pod -l app=control-panel-service-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=blockchain-engine-pod -o name)  && kubectl logs $(kubectl get pod -l app=blockchain-engine-pod -o name)  -f
+
+
+kubectl delete $(kubectl get pod -l app=blockchain-engine-pod -o name)  && kubectl logs $(kubectl get pod -l app=blockchain-engine-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=streaming-worker-pod -o name)  && kubectl logs $(kubectl get pod -l app=streaming-worker-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=user-microservice-pod -o name)  && kubectl logs $(kubectl get pod -l app=user-microservice-pod -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=burency-client-react-pod -o name)  && kubectl logs $(kubectl get pod -l app=burency-client-react-pod -o name)  -f   
+
+
+kubectl delete $(kubectl get pod -l app=alb-ingress-controller -o name)  && kubectl logs $(kubectl get pod -l app=alb-ingress-controller -o name)  -f
+
+kubectl delete $(kubectl get pod -l app=test-microservice -o name)  && kubectl logs $(kubectl get pod -l app=test-microservice -o name)  -f
+
+
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/misc/redis-commander.yml && kubectl delete $(kubectl get pod -l app=redis-commander -o name)  && kubectl logs $(kubectl get pod -l app=redis-commander -o name)  -f
+
+
+
+kubectl delete pvc mongo-volume-mongo-0 && kubectl delete pvc mongo-volume-mongo-1 && kubectl delete pvc mongo-volume-mongo-2
+
+kubectl delete pvc data-redis-cluster-0  && kubectl delete pvc data-redis-cluster-1 && kubectl delete pvc data-redis-cluster-2 && kubectl delete pvc data-redis-cluster-3 && kubectl delete pvc data-redis-cluster-4 && kubectl delete pvc data-redis-cluster-5
+
+/home/asd/Desktop/vaultspay/eks/dev/k8s/misc/redis.yml
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/misc/mongodb.yml
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/misc/redis.yml
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/misc/redis-json.yml
+

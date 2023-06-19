@@ -1,0 +1,65 @@
+### [Jenkins]
+
+http://dev-jenkins.malikatique.com/
+http://3.87.102.79:8080/
+
+
+### [Kubernetes Dashboard]
+https://dev-metrics.malikatique.com/#/login
+
+
+### [burency-react-admin]
+
+http://dev-admin.malikatique.com/
+
+
+### [burency-react-client]
+
+http://dev-burency.malikatique.com/
+
+### [auth-microservice]
+
+http://dev-auth.malikatique.com/
+
+### [banking-engine]
+
+http://dev-banking.malikatique.com/
+
+
+
+### [control-panel-service]
+
+http://dev-cp.malikatique.com/
+
+
+### [files-management-service]
+
+http://dev-fms.malikatique.com/
+
+
+### [logs-service]
+
+http://dev-log.malikatique.com/
+
+
+### [matching-engine]
+
+http://dev-me.malikatique.com/
+
+
+### [notifications-service]
+
+http://dev-ns.malikatique.com/
+
+
+### [user-microservice]
+
+http://dev-user.malikatique.com/
+
+
+### [redis-cluster]
+https://dev-redis.malikatique.com/
+
+username: "burency-ahmed-kabeer"
+password: "433c3982b5cf44fb8b9ca754a5aecb71"   
+
