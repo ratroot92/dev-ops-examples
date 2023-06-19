@@ -1,0 +1,134 @@
+image: node:16.14.2-alpine
+pipelines:
+    branches:
+        dev:
+            - step:
+                  name: 'Deploy Auth Service to AWS EC2'
+                  caches:
+                      - node
+                  script:
+                      - rm -rf package-lock.json
+                      - rm -rf yarn.lock
+                      - rm -rf node_modules/
+                      - rm -rf bitbucket-pipelines.yml
+                      - rm -rf Dockerfile.staging
+                      - rm -rf Dockerfile.test
+                      - rm -rf .env-example
+                      - rm -rf .env.dev
+                      - rm -rf .env.dev
+                      - rm -rf .env.local
+                      - rm -rf .env.staging
+                      - rm -rf .env.test
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '3.82.250.75'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/development/start-auth.sh before'
+
+                      - pipe: atlassian/scp-deploy:1.2.1
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            USER: 'ubuntu'
+                            SERVER: '3.82.250.75'
+                            REMOTE_PATH: '/var/www/development/${BITBUCKET_REPO_SLUG}'
+                            LOCAL_PATH: '${BITBUCKET_CLONE_DIR}/'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '3.82.250.75'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/development/start-auth.sh after'
+
+        test:
+            - step:
+                  name: 'Deploy Auth Service to AWS EC2 ON TEST ENV'
+                  caches:
+                      - node
+                  script:
+                      - rm -rf package-lock.json
+                      - rm -rf yarn.lock
+                      - rm -rf node_modules/
+                      - rm -rf bitbucket-pipelines.yml
+                      - rm -rf Dockerfile.staging
+                      - rm -rf Dockerfile.development
+                      - rm -rf .env-example
+                      - rm -rf .env.dev
+                      - rm -rf .env.dev
+                      - rm -rf .env.local
+                      - rm -rf .env.staging
+                      - rm -rf .env.development
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '3.82.250.75'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/test/start-auth.sh before'
+
+                      - pipe: atlassian/scp-deploy:1.2.1
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            USER: 'ubuntu'
+                            SERVER: '3.82.250.75'
+                            REMOTE_PATH: '/var/www/test/${BITBUCKET_REPO_SLUG}'
+                            LOCAL_PATH: '${BITBUCKET_CLONE_DIR}/'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '3.82.250.75'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/test/start-auth.sh after'
+
+        staging:
+            - step:
+                  name: 'Deploy Auth Service to AWS EC2'
+                  caches:
+                      - node
+                  script:
+                      - rm -rf package-lock.json
+                      - rm -rf yarn.lock
+                      - rm -rf node_modules/
+                      - rm -rf bitbucket-pipelines.yml
+                      - rm -rf Dockerfile.development
+                      - rm -rf Dockerfile.test
+                      - rm -rf .env-example
+                      - rm -rf .env.dev
+                      - rm -rf .env.dev
+                      - rm -rf .env.local
+                      - rm -rf .env.development
+                      - rm -rf .env.test
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '34.230.40.148'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/burency/start-auth.sh before'
+
+                      - pipe: atlassian/scp-deploy:1.2.1
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            USER: 'ubuntu'
+                            SERVER: '34.230.40.148'
+                            REMOTE_PATH: '/var/www/burency/${BITBUCKET_REPO_SLUG}'
+                            LOCAL_PATH: '${BITBUCKET_CLONE_DIR}/'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+
+                      - pipe: atlassian/ssh-run:0.2.2
+                        variables:
+                            SSH_USER: 'ubuntu'
+                            SSH_PORT: '22'
+                            SERVER: '34.230.40.148'
+                            SSH_KEY: '${DEV_SERVER_SSH_KEY}'
+                            COMMAND: 'sudo /var/www/burency/start-auth.sh after'

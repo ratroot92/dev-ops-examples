@@ -1,0 +1,69 @@
+#!/usr/bin/env groovy
+/* groovylint-disable  */
+
+pipeline {
+    agent any
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION = credentials('AWS_DEFAULT_REGION')
+        STAGING_DOCKER_IMAGE_TAG = 'latest'
+        STAGING_DOCKER_IMAGE_NAME = '476917393332.dkr.ecr.us-east-1.amazonaws.com/banking-engine:latest'
+        DEV_DOCKER_IMAGE_TAG = 'dev'
+        DEV_DOCKER_IMAGE_NAME = '476917393332.dkr.ecr.us-east-1.amazonaws.com/banking-engine:dev'
+
+
+    }
+    stages {  
+
+
+ stage('Deploy Docker Image To ECR Registry') {
+           
+            steps {
+                script {
+                     def branchName = env.GIT_BRANCH.replaceAll('^origin/', '')
+                     if (branchName == 'dev') {
+                        sh "docker system prune --all -f"
+                        sh 'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com'
+                        sh "docker build -t ${JOB_NAME}:${DEV_DOCKER_IMAGE_TAG} -f Dockerfile.dev . "
+                        sh 'docker tag ${JOB_NAME}:${DEV_DOCKER_IMAGE_TAG} 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${JOB_NAME}:${DEV_DOCKER_IMAGE_TAG}'
+                        sh 'docker push 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${JOB_NAME}:${DEV_DOCKER_IMAGE_TAG}'
+
+                      } else if (branchName == 'staging') {
+                        sh "docker system prune --all -f"
+                        sh 'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com'
+                        sh "docker build -t ${JOB_NAME}:${STAGING_DOCKER_IMAGE_TAG} -f Dockerfile.k8s . "
+                        sh 'docker tag ${JOB_NAME}:${STAGING_DOCKER_IMAGE_TAG} 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${JOB_NAME}:${STAGING_DOCKER_IMAGE_TAG}'
+                        sh 'docker push 476917393332.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${JOB_NAME}:${STAGING_DOCKER_IMAGE_TAG}'
+                     }
+
+                    
+                     
+                }
+            }
+        }      
+      stage('Deploy To EKS') {
+           
+            steps {
+                script {
+                     def branchName = env.GIT_BRANCH.replaceAll('^origin/', '')
+                     if (branchName == 'dev') {
+                        sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name burency_dev-aws_eks_cluster"
+                        sh "sed -i 's|IMAGE_NAME_PLACEHOLDER|${DEV_DOCKER_IMAGE_NAME}|g'  ${JOB_NAME}.yaml"
+                        sh "kubectl delete -f ${JOB_NAME}.yaml & kubectl apply -f ${JOB_NAME}.yaml"
+                      } else if (branchName == 'staging') {
+                        sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name burency_eks"
+                        sh "sed -i 's|IMAGE_NAME_PLACEHOLDER|${STAGING_DOCKER_IMAGE_NAME}|g'  ${JOB_NAME}.yaml"
+                        sh "kubectl delete -f ${JOB_NAME}.yaml & kubectl apply -f ${JOB_NAME}.yaml"
+                     }
+
+                    
+                     
+                }
+            }
+        }      
+     
+
+}
+}
+
