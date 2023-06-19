@@ -1,0 +1,130 @@
+# # https://github.com/joeferner/redis-commander/blob/master/docs/security_checks.md
+# # https://hub.docker.com/r/rediscommander/redis-commander
+# # https://redis.malikatique.com/
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: redis-commander
+#   annotations:
+#     # Tell Kubernetes to apply the AppArmor or SecComp profile "runtime/default". (whatever is used)
+#     # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+#     # and fails if AppArmor enabled but profile not found (may happens on borked k8s installs only)
+#     # set to "unconfined" to disable AppArmor (first annotation) or SecComp (second annotation)
+#     container.apparmor.security.beta.kubernetes.io/redis-commander: runtime/default
+#     container.security.alpha.kubernetes.io/redis-commander: runtime/default
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: redis-commander
+#   template:
+#     metadata:
+#       labels:
+#         app: redis-commander
+#     spec:
+#         containers:
+#         - name: redis-commander
+#           image: ghcr.io/joeferner/redis-commander
+#           imagePullPolicy: Always
+#           env:
+#           - name: REDIS_HOSTS
+#           # value: burency-redis:redis-cluster-ip
+#            #  10.0.111.60:6379 10.0.124.179:6379 10.0.98.221:6379 10.0.106.164:6379 10.0.95.239:6379 10.0.95.212:6379 :6379 
+#             value: redis-1:10.0.111.60:6379,redis-2:10.0.98.221:6379,redis-3:10.0.106.164:6379,redis-4:10.0.95.239:6379,redis-5:10.0.95.212:6379,redis-6:10.0.124.179:6379
+#             # value: redis-1:redis-cluster-0.redis-cluster-ip
+#           # - name: REDIS_HOST
+#           #   value: redis-0.redis.default.svc.cluster.local
+#           - name: K8S_SIGTERM
+#             value: "1"
+#           # - name: REDIS_USER
+#           #   value: ""
+#           # - name: REDIS_PASSWORD
+#           #   value: "a-very-complex-password-here"
+#           - name: HTTP_USER
+#             value: "burency-ahmed-kabeer"
+#           - name: HTTP_PASSWORD
+#             value: "433c3982b5cf44fb8b9ca754a5aecb71"   
+
+#           ports:
+#           - name: redis-commander
+#             containerPort: 8081
+#           livenessProbe:
+#             httpGet:
+#               path: /favicon.png
+#               port: 8081
+#             initialDelaySeconds: 10
+#             timeoutSeconds: 5
+#           # adapt to your needs base on data stored inside redis (number of keys and size of biggest keys)
+#           # or comment out for less secure installation
+#           resources:
+#             limits:
+#               cpu: "500m"
+#               memory: "512M"
+#           securityContext:
+#             runAsNonRoot: true
+#             readOnlyRootFilesystem: false
+#             allowPrivilegeEscalation: false
+#             capabilities:
+#               drop:
+#                 - ALL
+#         # env:
+#         # - name: PORT
+#         # - value: "8081"
+#         # - name: REDIS_HOST
+#         #   value: redis-cluster-ip
+#         # - name: REDIS_PORT
+#         #   value: "6379"
+          
+# # - name: REDIS_PORT
+# # - value: 6379
+# # - name: REDIS_HOST
+# # - value: redis-cluster-ip
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: redis-commander
+# spec:
+#   ports:
+#    - port: 8081
+#      targetPort: 8081
+#      protocol: TCP
+#   type: NodePort
+#   selector:
+#     app: redis-commander
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: redis
+#   namespace: default 
+#   annotations:
+#     # Health Check Settings 
+#    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+#    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+#    alb.ingress.kubernetes.io/healthcheck-path: /health-status
+#    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '300'
+#    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+#    alb.ingress.kubernetes.io/success-codes: '200'
+#    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+#    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+#    alb.ingress.kubernetes.io/scheme: internet-facing
+#    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:476917393332:certificate/cd009bde-b766-4c5a-b704-c2aa1ec8a2e9
+#    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+#    alb.ingress.kubernetes.io/ssl-redirect: '443'
+#    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600
+
+# spec:
+#   ingressClassName: alb
+#   rules:
+#    - host: dev-redis.malikatique.com
+#      http:
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#           backend:
+#             service: 
+#               name: redis-commander
+#               port: 
+#                 number: 8081

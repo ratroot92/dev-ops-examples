@@ -1,0 +1,47 @@
+# Auth Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-microservice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-microservice-pod
+  template:
+    metadata:
+      labels:
+        app: auth-microservice-pod
+    spec:
+      containers:
+      - name: auth-microservice-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/auth-microservice:dev
+        imagePullPolicy: Always
+        # resources:
+        #   requests:
+        #     memory: 128Mi
+        #     cpu: 125m
+        #   limits:
+        #     memory: 1024Mi
+        #     cpu: "500m"
+        ports:
+          - containerPort: 3001
+      imagePullSecrets:
+      - name: ecr-registry-creds
+
+
+
+
+# Auth Service CLuster IP
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: auth-microservice-cluster-ip
+# spec:
+#   type: ClusterIP
+#   selector:
+#     app: auth-microservice-pod
+#   ports:
+#   - name: http
+#     port: 80
+#     targetPort: 3001

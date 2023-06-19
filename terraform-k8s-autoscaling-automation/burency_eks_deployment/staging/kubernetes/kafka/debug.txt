@@ -1,0 +1,22 @@
+
+https://www.youtube.com/watch?v=r9ydV0Y0duo&t=321s
+https://github.com/Yolean/kubernetes-kafka
+
+# 
+Issue 
+#
+
+- Init:CrashLoopBackOf 
+- kubectl logs kafka-0  --all-containers || kubectl logs kafka-0  -c init-config // view pod container logs 
+- - Error from server (Forbidden): nodes "ip-10-0-79-185.ec2.internal" is forbidden: User "system:serviceaccount:default:default" cannot get resource "nodes" in API group "" at the cluster scope
+- + ZONE=
+
+
+# 
+Solution 
+#
+
+- https://github.com/Yolean/kubernetes-kafka/issues/232
+- create clusterrolebinding 
+- kubectl create clusterrolebinding fixRBACKafka --clusterrole=cluster-admin --serviceaccount=default:default
+

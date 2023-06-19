@@ -1,0 +1,44 @@
+salam 
+
+work update 
+
+
+
+1-Deployed Redis Cluster using this repo 
+
+https://github.com/hatamiarash7
+
+
+
+2-Applied conditional changes to Microservices to connect to redis cluster in k8s env and single redis instance in local environment 
+
+(Matching and Banking)
+
+
+
+
+
+2-Understood Redis clustering approach via these  videos
+
+https://www.youtube.com/watch?v=3WOfXRjYnGA
+
+https://www.youtube.com/watch?v=N8BkmdZzxDg
+
+
+
+
+
+Confusions  and shortcomings :
+
+1-Need to test whether redis json module and Redis search modules are working or not 
+
+2-Could not find out yet if clustering is optimizing the availability and performance 
+
+3-Redis Cluster is unsecured  (no connection authenticated applied yet )
+
+
+
+attaching screenshots for understanding the purpose 
+
+
+

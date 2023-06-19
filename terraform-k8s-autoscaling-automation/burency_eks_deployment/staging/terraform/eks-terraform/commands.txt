@@ -1,0 +1,102 @@
+
+eks_cluster_autoscaler_arn = "arn:aws:iam::476917393332:role/eks-cluster-autoscaler"
+test_policy_arn = "arn:aws:iam::476917393332:role/test-oidc"
+
+aws eks --region us-east-1 update-kubeconfig --name demo
+
+kubectl delete -f ../k8s/aws-test.yml  && kubectl apply -f ../k8s/aws-test.yml  && kube get pods 
+
+kubectl exec aws-cli -- aws s3api list-buckets
+
+
+# check autoscaler for errors 
+kubectl logs -l app=cluster-autoscaler -n kube-system -f 
+
+watch -n 1 -t kubectl get nodes 
+
+
+kubectl apply -f malik-k8s/auth-service/ && kubectl apply -f malik-k8s/shared-redis/ && kubectl apply -f malik-k8s/kafka/
+kubectl delete -f malik-k8s/auth-service/ && kubectl delete -f malik-k8s/shared-redis/ && kubectl delete -f malik-k8s/kafka/
+
+kubectl delete 
+
+
+
+
+
+
+
+###
+### 
+###
+
+
+
+delete all evicted pods
+kubectl get pod  | grep Pending | awk '{print $1}' | xargs kubectl delete pod 
+kubectl get deployment  | grep 0/1 | awk '{print $1}' | xargs kubectl delete deployment 
+
+kubectl get pod  | grep Error | awk '{print $1}' | xargs kubectl delete pod 
+kubectl get pod  | grep 0/1 | awk '{print $1}' | xargs kubectl delete pod 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###
+###
+###
+
+
+Solved Volume Claims Creation Via This 
+https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/install.md
+
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.17"
+kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: auth-microservice-db-volume
+  labels:
+    type: local  
+spec:
+  storageClassName: gp2
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-microservice-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # selector:
+  #   matchLabels:
+  #     name: auth-microservice-db-volume

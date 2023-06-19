@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: matching-engine-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matching-engine-pod
+  template:
+    metadata:
+      labels:
+        app: matching-engine-pod
+    spec:
+      containers:
+      - name: matching-engine-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/matching-engine:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3010
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 1024Mi
+            cpu: 1500m
+      imagePullSecrets:
+      - name: ecr-registry-creds
+      
+

@@ -1,0 +1,7 @@
+resources:
+- cert-manager.yml
+- v2_4_1_full.yml
+- alb-class.yml
+- alb-services.yml
+
+

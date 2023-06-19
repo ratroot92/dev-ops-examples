@@ -1,0 +1,29 @@
+
+
+aws_load_balancer_controller_arn = "arn:aws:iam::476917393332:role/aws-load-balancer-controller"
+eks_cluster_autoscaler_arn = "arn:aws:iam::476917393332:role/eks-cluster-autoscaler"
+test_policy_arn = "arn:aws:iam::476917393332:role/test-oidc"
+
+
+
+kubectl delete -f /home/asd/Desktop/vaultspay/eks/kubernetes/nginx-ingress-controller/alb-ingress-controller.yml && kubectl apply -f /home/asd/Desktop/vaultspay/eks/kubernetes/nginx-ingress-controller/alb-ingress-controller.yml
+
+
+aws eks --region us-east-1 update-kubeconfig --name burency_eks 
+
+
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/kubernetes/nginx-ingress-controller/cert-manager.yml
+kubectl get pods -n cert-manager 
+kub apply -f /home/asd/Desktop/vaultspay/eks/kubernetes/nginx-ingress-controller/v2_4_1_full.yml
+
+https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v2.4.1/v2_4_1_full.yaml
+https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/
+kubectl logs -f -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+kubectl get ing 
+
+
+
+https://www.youtube.com/watch?v=ZfjpWOC5eoE&ab_channel=AntonPutra
+
+
+https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml

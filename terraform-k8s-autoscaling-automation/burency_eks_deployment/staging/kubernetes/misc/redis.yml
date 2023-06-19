@@ -1,0 +1,140 @@
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: redis-cluster-ip
+# spec:
+#   type: ClusterIP
+#   ports:
+#   - port: 6379
+#     targetPort: 6379
+#     name: client
+#   - port: 16379
+#     targetPort: 16379
+#     name: gossip
+#   selector:
+#     app: redis-cluster
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: client
+  - port: 16379
+    targetPort: 16379
+    name: gossip
+  clusterIP: None
+  selector:
+    app: redis-cluster
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dnsutils-pod
+spec:
+  containers:
+    - name: dnsutils-container
+      image: tutum/dnsutils:latest
+      command:
+        - sleep
+        - infinity
+
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster
+data:
+  update.sh: |
+    #!/bin/sh
+    REDIS_NODES="/data/nodes.conf"
+    sed -i -e "/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${POD_IP}/" ${REDIS_NODES}
+    exec "$@"
+  redis.conf: |+
+    loadmodule /usr/lib/redis/modules/redisai.so
+    loadmodule /usr/lib/redis/modules/redisbloom.so
+    loadmodule /usr/lib/redis/modules/redisearch.so 
+    loadmodule /usr/lib/redis/modules/redisgears.so
+    loadmodule /usr/lib/redis/modules/redisgraph.so
+    loadmodule /usr/lib/redis/modules/rejson.so
+    loadmodule /usr/lib/redis/modules/redistimeseries.so
+    cluster-enabled yes
+    cluster-require-full-coverage no
+    cluster-node-timeout 15000
+    cluster-config-file /data/nodes.conf
+    cluster-migration-barrier 1
+    appendonly yes
+    protected-mode no
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+spec:
+  serviceName: redis
+  replicas: 6
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      containers:
+      - name: redis
+        image: redislabs/redismod
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        command: ["/conf/update.sh", "redis-server", "/conf/redis.conf"]
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: conf
+          mountPath: /conf
+          readOnly: false
+        - name: data
+          mountPath: /data
+          readOnly: false
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-cluster
+          defaultMode: 0755
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+
+          # kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+          # kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 '
+          # kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 127.0.0.1:6379 redis-cluster-1.redis.default.svc.cluster.local:6379 redis-cluster-2.redis.default.svc.cluster.local:6379 redis-cluster-3.redis.default.svc.cluster.local:6379 redis-cluster-4.redis.default.svc.cluster.local:6379 redis-cluster-5.redis.default.svc.cluster.local:6379
+
+          # kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 127.0.0.1:6379 redis-cluster-1.redis.default.svc.cluster.local:6379 redis-cluster-2.redis.default.svc.cluster.local:6379 redis-cluster-3.redis.default.svc.cluster.local:6379 redis-cluster-4.redis.default.svc.cluster.local:6379 redis-cluster-5.redis.default.svc.cluster.local:6379
+         
+          # kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 10.0.106.179:6379 10.0.70.55:6379 10.0.116.212:6379 10.0.65.86:6379 10.0.122.214:6379 10.0.112.17:6379
+         
+          # kubectl delete -f /home/asd/Desktop/vaultspay/eks/staging/kubernetes/misc/redis.yml & kubectl delete pvc data-redis-cluster-0   &  kubectl delete pvc data-redis-cluster-1 &  kubectl delete pvc data-redis-cluster-2 &  kubectl delete pvc data-redis-cluster-3 &  kubectl delete pvc data-redis-cluster-4 &  kubectl delete pvc data-redis-cluster-5 & kubectl apply -f /home/asd/Desktop/vaultspay/eks/staging/kubernetes/misc/redis.yml
+
+# kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 redis-cluster-0.redis.default.svc.cluster.local:6379 redis-cluster-1.redis.default.svc.cluster.local:6379
+# apt update -y && apt install dnsutils curl nano -y && nslookup redis
+
+
+#   redis-cli --cluster create --cluster-replicas 1 127.0.0.1:6379 redis-cluster-1.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-2.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-3.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-4.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-5.redis-cluster-ip.default.svc.cluster.local:6379
+         

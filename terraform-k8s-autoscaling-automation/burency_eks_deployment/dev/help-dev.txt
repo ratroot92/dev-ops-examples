@@ -1,0 +1,53 @@
+###########################
+ AWS LOAD BALANCER 
+###########################
+
+aws eks --region us-east-1 update-kubeconfig --name burency_dev-aws_eks_cluster
+
+
+
+########################################################################################################
+########################################################################################################
+
+alb_loadbalancer_policy_arn = "arn:aws:iam::476917393332:role/burency_dev_aws-load-balancer-controller"
+
+ec2_public_ip = "3.87.102.79"
+
+eks_cluster_autoscaler_arn = "arn:aws:iam::476917393332:role/burency_dev_eks-cluster-autoscaler"
+
+test_policy_arn = "arn:aws:iam::476917393332:role/burency_dev_test-oidc"
+
+########################################################################################################
+########################################################################################################
+
+
+kubectl delete -f  alb-class.yml && kubectl delete -f  cert-manager.yml && kubectl delete -f  v2_4_1_full.yml && kubectl delete -f  alb-services.yml
+
+kubectl apply -f  alb-class.yml && kubectl apply -f  cert-manager.yml && kubectl apply -f  v2_4_1_full.yml && kubectl apply -f  alb-services.yml
+
+kubectl delete -f /home/asd/Desktop/vaultspay/eks/dev/k8s/nginx-ingress-controller/alb-ingress-controller.yml && kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/nginx-ingress-controller/alb-ingress-controller.yml
+
+
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/nginx-ingress-controller/cert-manager.yml
+kubectl get pods -n cert-manager 
+kubectl apply -f /home/asd/Desktop/vaultspay/eks/dev/k8s/nginx-ingress-controller/v2_4_1_full.yml
+
+https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/download/v2.4.1/v2_4_1_full.yaml
+https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/
+kubectl logs -f -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+kubectl get ing 
+
+kubectl apply -k /home/asd/Desktop/vaultspay/eks/dev/k8s/nginx-ingress-controller/
+
+
+
+https://www.youtube.com/watch?v=ZfjpWOC5eoE&ab_channel=AntonPutra
+
+
+https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
+
+
+
+###########################
+ AWS LOAD BALANCER 
+###########################

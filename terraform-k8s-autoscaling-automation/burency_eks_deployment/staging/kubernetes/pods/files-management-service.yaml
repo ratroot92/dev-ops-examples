@@ -1,0 +1,30 @@
+# Auth Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: files-management-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: files-management-service-pod
+  template:
+    metadata:
+      labels:
+        app: files-management-service-pod
+    spec:
+      containers:
+      - name: files-management-service-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/files-management-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3007
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 125m
+          limits:
+            memory: 1024Mi
+            cpu: "500m"
+      imagePullSecrets:
+      - name: ecr-registry-creds

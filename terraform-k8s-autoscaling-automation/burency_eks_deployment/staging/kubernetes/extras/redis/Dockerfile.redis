@@ -1,0 +1,21 @@
+FROM redis:6.0.6-alpine
+
+RUN apk add --no-cache build-base wget
+
+RUN wget https://github.com/RedisJSON/RedisJSON/archive/v1.0.8.tar.gz && \
+    tar xzf v1.0.8.tar.gz && \
+    wget https://github.com/RediSearch/RediSearch/archive/v2.2.4.tar.gz && \
+    tar xzf v2.2.4.tar.gz
+
+RUN cd RedisJSON-1.0.8 && \
+    make && \
+    make install
+
+RUN cd RediSearch-2.2.4 && \
+    make && \
+    make install
+
+RUN rm -rf RedisJSON-1.0.8 v1.0.8.tar.gz RediSearch-2.2.4 v2.2.4.tar.gz && \
+    apk del build-base wget
+
+# CMD ["redis-server"]

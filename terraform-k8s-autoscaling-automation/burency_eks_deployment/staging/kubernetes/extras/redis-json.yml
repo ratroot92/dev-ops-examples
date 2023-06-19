@@ -1,0 +1,175 @@
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: redis-config
+# data:
+#   redis.conf: |
+#     loadmodule /usr/lib/redis/modules/redisai.so
+#     loadmodule /usr/lib/redis/modules/redisbloom.so
+#     loadmodule /usr/lib/redis/modules/redisearch.so 
+#     loadmodule /usr/lib/redis/modules/redisgears.so
+#     loadmodule /usr/lib/redis/modules/redisgraph.so
+#     loadmodule /usr/lib/redis/modules/rejson.so
+#     loadmodule /usr/lib/redis/modules/redistimeseries.so
+#     masterauth a-very-complex-password-here
+#     requirepass a-very-complex-password-here
+#     bind 0.0.0.0
+#     protected-mode no
+#     port 6379
+#     tcp-backlog 511
+#     timeout 0
+#     tcp-keepalive 300
+#     daemonize no
+#     supervised no
+#     pidfile "/var/run/redis_6379.pid"
+#     loglevel notice
+#     logfile ""
+#     databases 16
+#     always-show-logo yes
+#     save 900 1
+#     save 300 10
+#     save 60 10000
+#     stop-writes-on-bgsave-error yes
+#     rdbcompression yes
+#     rdbchecksum yes
+#     dbfilename "dump.rdb"
+#     rdb-del-sync-files no
+#     dir "/data"
+#     replica-serve-stale-data yes
+#     replica-read-only yes
+#     repl-diskless-sync no
+#     repl-diskless-sync-delay 5
+#     repl-diskless-load disabled
+#     repl-disable-tcp-nodelay no
+#     replica-priority 100
+#     acllog-max-len 128
+#     lazyfree-lazy-eviction no
+#     lazyfree-lazy-expire no
+#     lazyfree-lazy-server-del no
+#     replica-lazy-flush no
+#     lazyfree-lazy-user-del no
+#     appendonly yes
+#     appendfilename "appendonly.aof"
+#     appendfsync everysec
+#     no-appendfsync-on-rewrite no
+#     auto-aof-rewrite-percentage 100
+#     auto-aof-rewrite-min-size 64mb
+#     aof-load-truncated yes
+#     aof-use-rdb-preamble yes
+#     lua-time-limit 5000
+#     slowlog-log-slower-than 10000
+#     slowlog-max-len 128
+#     latency-monitor-threshold 0
+#     notify-keyspace-events ""
+#     hash-max-ziplist-entries 512
+#     hash-max-ziplist-value 64
+#     list-max-ziplist-size -2
+#     list-compress-depth 0
+#     set-max-intset-entries 512
+#     zset-max-ziplist-entries 128
+#     zset-max-ziplist-value 64
+#     hll-sparse-max-bytes 3000
+#     stream-node-max-bytes 4kb
+#     stream-node-max-entries 100
+#     activerehashing yes
+#     client-output-buffer-limit normal 0 0 0
+#     client-output-buffer-limit replica 256mb 64mb 60
+#     client-output-buffer-limit pubsub 32mb 8mb 60
+#     hz 10
+#     dynamic-hz yes
+#     aof-rewrite-incremental-fsync yes
+#     rdb-save-incremental-fsync yes
+#     jemalloc-bg-thread yes
+
+
+# ---
+
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: redis
+# spec:
+#   serviceName: redis
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: redis
+#   template:
+#     metadata:
+#       labels:
+#         app: redis
+#     spec:
+#       initContainers:
+#       - name: config
+#         image: redis:6.2.3-alpine
+#         command: [ "sh", "-c" ]
+#         args:
+#           - |
+#             cp /tmp/redis/redis.conf /etc/redis/redis.conf
+            
+#             echo "finding master..."
+#             MASTER_FDQN=`hostname  -f | sed -e 's/redis-[0-9]\./redis-0./'`
+#             if [ "$(redis-cli -h sentinel -p 5000 ping)" != "PONG" ]; then
+#               echo "master not found, defaulting to redis-0"
+
+#               if [ "$(hostname)" == "redis-0" ]; then
+#                 echo "this is redis-0, not updating config..."
+#               else
+#                 echo "updating redis.conf..."
+#                 echo "slaveof $MASTER_FDQN 6379" >> /etc/redis/redis.conf
+#               fi
+#             else
+#               echo "sentinel found, finding master"
+#               MASTER="$(redis-cli -h sentinel -p 5000 sentinel get-master-addr-by-name mymaster | grep -E '(^redis-\d{1,})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})')"
+#               echo "master found : $MASTER, updating redis.conf"
+#               echo "slaveof $MASTER 6379" >> /etc/redis/redis.conf
+#             fi
+#         volumeMounts:
+#         - name: redis-config
+#           mountPath: /etc/redis/
+#         - name: config
+#           mountPath: /tmp/redis/
+#       containers:
+#       - name: redis
+#         image: redislabs/redismod
+#         command: ["redis-server"]
+#         args: ["/etc/redis/redis.conf"]
+#         ports:
+#         - containerPort: 6379
+#           name: redis
+#         volumeMounts:
+#         - name: data
+#           mountPath: /data
+#         - name: redis-config
+#           mountPath: /etc/redis/
+#       volumes:
+#       - name: redis-config
+#         emptyDir: {}
+#       - name: config
+#         configMap:
+#           name: redis-config
+#   volumeClaimTemplates:
+#   - metadata:
+#       name: data
+#     spec:
+#       accessModes: [ "ReadWriteOnce" ]
+#       # storageClassName: "local-storage"
+#       resources:
+#         requests:
+#           storage: 500Mi
+
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: redis
+# spec:
+#   clusterIP: None
+#   ports:
+#   - port: 6379
+#     targetPort: 6379
+#     name: redis
+#   selector:
+#     app: redis

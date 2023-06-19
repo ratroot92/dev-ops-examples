@@ -1,0 +1,7 @@
+resources:
+- zookeeper-config.yml
+- pzoo-service.yml
+- zoo-service.yml
+- service.yml
+- pzoo.yml
+- zoo.yml

@@ -1,0 +1,110 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: burency-ingress-service
+  annotations:
+    # Amazon EKS Specific Config
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+
+    # Minikube Specific Config
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /auth(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service-cluster-ip
+                port:
+                  name: http
+          - path: /user(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: users-service-cluster-ip
+                port:
+                  name: http
+          - path: /ap(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-panel-cluster-ip
+                port:
+                  name: http
+          - path: /be(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: banking-engine-cluster-ip
+                port:
+                  name: http
+          - path: /d(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: client-panel-cluster-ip
+                port:
+                  name: http
+          - path: /cp(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: control-panel-cluster-ip
+                port:
+                  name: http
+          - path: /fms(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: files-management-service-cluster-ip
+                port:
+                  name: http
+          - path: /ls(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: logs-service-cluster-ip
+                port:
+                  name: http
+          - path: /me(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: matching-engine-cluster-ip
+                port:
+                  name: http
+          - path: /ns(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: notifications-service-cluster-ip
+                port:
+                  name: http
+          # - path: /be(/|$)(.*)
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: blockchain-service-cluster-ip
+          #       port:
+          #         name: http
+         
+---
+# Amazon EKS Specific
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller-2
+  namespace: ingress-nginx
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: ingress-nginx

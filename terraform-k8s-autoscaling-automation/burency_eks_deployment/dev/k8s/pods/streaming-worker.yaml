@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: streaming-worker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streaming-worker-pod
+  template:
+    metadata:
+      labels:
+        app: streaming-worker-pod
+    spec:
+      containers:
+      - name: streaming-worker-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/streaming-worker:dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3013
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 1024Mi
+            cpu: 1500m
+      imagePullSecrets:
+      - name: ecr-registry-creds
+      
+

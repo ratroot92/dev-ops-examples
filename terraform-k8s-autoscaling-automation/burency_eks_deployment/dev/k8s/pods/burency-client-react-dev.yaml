@@ -1,0 +1,77 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burency-client-react-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burency-client-react-pod
+  template:
+    metadata:
+      labels:
+        app: burency-client-react-pod
+    spec:
+      containers:
+      - name: burency-client-react-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/burency-client-react:dev
+        imagePullPolicy: Always
+        env:
+        - name: REACT_APP_ME_SOCKET_URL
+          value: dev-me.malikatique.com
+         
+        - name: REACT_APP_BE_SOCKET_URL
+          value: dev-banking.malikatique.com
+         
+        - name: REACT_APP_AUTH_SOCKET_URL
+          value: dev-auth.malikatique.com
+         
+        - name: REACT_APP_AUTH_SERVICE_URL
+          value: dev-auth.malikatique.com
+         
+        - name: REACT_APP_BE_SERVICE_URL
+          value: dev-banking.malikatique.com
+         
+        - name: REACT_APP_CP_SERVICE_URL
+          value: dev-cp.malikatique.com
+         
+        - name: REACT_APP_FMS_SERVICE_URL
+          value: dev-fms.malikatique.com
+         
+        - name: REACT_APP_LOGS_SERVICE_URL
+          value: dev-log.malikatique.com
+         
+        - name: REACT_APP_NT_SERVICE_URL
+          value: dev-ns.malikatique.com
+         
+        - name: REACT_APP_USER_SERVICE_URL
+          value: dev-user.malikatique.com
+         
+        - name: REACT_APP_ME_SERVICE_URL
+          value: dev-me.malikatique.com
+         
+        - name: REACT_APP_API_URL
+          value: dev-matching-engine-cluster-ip/
+          
+        - name: REACT_APP_BC_SERVICE_URL
+          value: dev-bc.malikatique.com
+          
+        - name: REACT_APP_ENV
+          value: dev-k8s
+         
+        ports:
+        - containerPort: 3005
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            cpu: 1000m
+            memory: 2048Mi
+      imagePullSecrets:
+      - name: ecr-registry-creds
+
+
+
+

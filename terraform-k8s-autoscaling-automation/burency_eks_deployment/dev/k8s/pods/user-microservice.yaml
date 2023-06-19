@@ -1,0 +1,31 @@
+# Auth Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-microservice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-microservice-pod
+  
+  template:
+    metadata:
+      labels:
+        app: user-microservice-pod
+    spec:
+      containers:
+      - name: user-microservice-container
+        image: 476917393332.dkr.ecr.us-east-1.amazonaws.com/user-microservice:dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3002
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 125m
+          limits:
+            memory: 1024Mi
+            cpu: "500m"
+      imagePullSecrets:
+      - name: ecr-registry-creds

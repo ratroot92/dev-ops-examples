@@ -1,0 +1,81 @@
+# https://github.com/joeferner/redis-commander/blob/master/docs/security_checks.md
+# https://hub.docker.com/r/rediscommander/redis-commander
+# https://redis.malikatique.com/
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-commander
+  annotations:
+    # Tell Kubernetes to apply the AppArmor or SecComp profile "runtime/default". (whatever is used)
+    # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+    # and fails if AppArmor enabled but profile not found (may happens on borked k8s installs only)
+    # set to "unconfined" to disable AppArmor (first annotation) or SecComp (second annotation)
+    container.apparmor.security.beta.kubernetes.io/redis-commander: runtime/default
+    container.security.alpha.kubernetes.io/redis-commander: runtime/default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-commander
+  template:
+    metadata:
+      labels:
+        app: redis-commander
+    spec:
+        containers:
+        - name: redis-commander
+          image: ghcr.io/joeferner/redis-commander
+          imagePullPolicy: Always
+          env:
+          - name: REDIS_HOSTS
+          # value: burency-redis:redis-cluster-ip
+            value: redis0:redis-cluster-0.redis.default.svc.cluster.local:6379, redis1:redis-cluster-1.redis-cluster-ip.default.svc.cluster.local:6379
+          # - name: REDIS_HOST
+          #   value: redis-0. redis-cli --cluster create --cluster-replicas 1 127.0.0.1:6379 redis-cluster-1.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-2.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-3.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-4.redis-cluster-ip.default.svc.cluster.local:6379 redis-cluster-5.redis-cluster-ip.default.svc.cluster.local:6379.default.svc.cluster.local
+          - name: K8S_SIGTERM
+            value: "1"
+          # - name: REDIS_USER
+          #   value: ""
+          # - name: REDIS_PASSWORD
+          #   value: "a-very-complex-password-here"
+          - name: HTTP_USER
+            value: "burency-ahmed-kabeer"
+          - name: HTTP_PASSWORD
+            value: "433c3982b5cf44fb8b9ca754a5aecb71"   
+
+          ports:
+          - name: redis-commander
+            containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /favicon.png
+              port: 8081
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          # adapt to your needs base on data stored inside redis (number of keys and size of biggest keys)
+          # or comment out for less secure installation
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512M"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        # env:
+        # - name: PORT
+        # - value: "8081"
+        # - name: REDIS_HOST
+        #   value: redis-cluster-ip
+        # - name: REDIS_PORT
+        #   value: "6379"
+          
+# - name: REDIS_PORT
+# - value: 6379
+# - name: REDIS_HOST
+# - value: redis-cluster-ip
+---

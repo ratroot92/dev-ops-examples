@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-engine-cluster-ip
+spec:
+  ports:
+   - port: 3012
+     targetPort: 3012
+     protocol: TCP
+  type: NodePort
+  selector:
+    app: blockchain-engine-pod
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blockchain
+  namespace: default 
+  annotations:
+   alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+   alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+   alb.ingress.kubernetes.io/healthcheck-path: /health-status
+   alb.ingress.kubernetes.io/healthcheck-interval-seconds: '300'
+   alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+   alb.ingress.kubernetes.io/success-codes: '200'
+   alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+   alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+   alb.ingress.kubernetes.io/scheme: internet-facing
+   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:476917393332:certificate/cd009bde-b766-4c5a-b704-c2aa1ec8a2e9
+   alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+   alb.ingress.kubernetes.io/ssl-redirect: '443'
+   alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=3600
+spec:
+  ingressClassName: alb
+  rules:
+   - host: bc.malikatique.com
+     http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service: 
+              name: blockchain-engine-cluster-ip
+              port: 
+                number: 3012
+
+

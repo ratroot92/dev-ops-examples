@@ -1,0 +1,8 @@
+resources:
+- aws-test.yml
+- cluster-autoscaler.yml
+- kubernetes-dashboard.yml
+- redis.yml
+- mongodb.yml
+- metrics-server.yml
+
