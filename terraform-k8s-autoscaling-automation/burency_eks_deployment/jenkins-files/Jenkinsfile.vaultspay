@@ -1,0 +1,292 @@
+#!/usr/bin/env groovy
+
+/* groovylint-disable */
+
+// sudo chown -R jenkins:jenkins /var/lib/jenkins/workspace/vaultspay-microservices/ && sudo chmod -R 777 /var/lib/jenkins/workspace/vaultspay-microservices/
+
+
+pipeline {
+  agent any
+  environment {
+    AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    AWS_DEFAULT_REGION = credentials('AWS_DEFAULT_REGION')
+  }
+  stages {
+// stage('Clean Workspace') {
+//            steps {
+//                cleanWs()
+//            }
+//         }
+
+    stage('Prune Docker 1') {
+      steps {
+        script {
+          sh 'docker system prune --all -f'
+        }
+      }
+    }
+
+
+
+    stage('Build Config Service') {
+      steps {
+        script {
+        //   sh './gradlew clean'
+          sh './gradlew config-server:clean --info config-server:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t config-server:latest -f ./config-server/Dockerfile.config-server.staging ."
+          sh "docker tag config-server:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/config-server:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/config-server:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment config-server-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/config-server.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/config-server.yml"
+
+    }
+        }
+      }
+
+
+ stage('Build Discovery Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew discovery-server:clean --info discovery-server:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t discovery-server:latest -f ./discovery-server/Dockerfile.discovery-server.staging ."
+          sh "docker tag discovery-server:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/discovery-server:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/discovery-server:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment discovery-server-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/discovery-server.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/discovery-server.yml"
+
+        }
+      }
+    }
+         stage('Build Payment Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew payment-card-service:clean --info payment-card-service:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t payment-card-service:latest -f ./payment-card-service/Dockerfile.payment-card-service.staging ."
+          sh "docker tag payment-card-service:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/payment-card-service:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/payment-card-service:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment payment-card-service-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/payment-card-service.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/payment-card-service.yml"
+
+
+        }
+      }
+
+    }
+
+     stage('Build Notification Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew notification-service:clean --info notification-service:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t notification-service:latest -f ./notification-service/Dockerfile.notification-service.staging ."
+          sh "docker tag notification-service:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/notification-service:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/notification-service:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment notification-service-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/notification-service.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/notification-service.yml"
+
+        }
+      }
+
+    }
+
+
+
+
+    stage('Build Auth Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew auth-service:clean --info auth-service:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t auth-service:latest -f ./auth-service/Dockerfile.auth-service.staging ."
+          sh "docker tag auth-service:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/auth-service:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/auth-service:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment auth-service-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/auth-service.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/auth-service.yml"
+        }
+      }
+    }
+
+    stage('Build Banking Engine') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew banking-engine:clean --info banking-engine:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t banking-engine:latest -f ./banking-engine/Dockerfile.banking-engine.staging ."
+          sh "docker tag banking-engine:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/banking-engine:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/banking-engine:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment banking-engine-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/banking-engine.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/banking-engine.yml"
+        }
+      }
+    }
+
+    stage('Build Gateway Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew gateway:clean --info gateway:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t gateway:latest -f ./gateway/Dockerfile.gateway.staging ."
+          sh "docker tag gateway:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gateway:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gateway:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment gateway-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/gateway.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/gateway.yml"
+        }
+      }
+    }
+
+
+
+    stage('Build User Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew users-service:clean --info users-service:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t users-service:latest -f ./users-service/Dockerfile.users-service.staging ."
+          sh "docker tag users-service:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/users-service:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/users-service:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment users-service-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/users-service.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/users-service.yml"
+        }
+      }
+
+    }
+
+     stage('Build Rules Engine') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew rules-engine:clean --info rules-engine:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t rules-engine:latest -f ./rules-engine/Dockerfile.rules-engine.staging ."
+          sh "docker tag rules-engine:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/rules-engine:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/rules-engine:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment rules-engine-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/rules-engine.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/rules-engine.yml"
+        }
+      }
+
+    }
+
+
+     stage('Build Transaction Map') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew transaction-map:clean --info transaction-map:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t transaction-map:latest -f ./transaction-map/Dockerfile.transaction-map.staging ."
+          sh "docker tag transaction-map:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/transaction-map:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/transaction-map:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment transaction-map-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/transaction-map.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/transaction-map.yml"
+        }
+      }
+
+    }
+
+     stage('Build Transaction Control') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew transaction-control:clean --info transaction-control:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t transaction-control:latest -f ./transaction-control/Dockerfile.transaction-control.staging ."
+          sh "docker tag transaction-control:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/transaction-control:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/transaction-control:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment transaction-control-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/transaction-control.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/transaction-control.yml"
+        }
+      }
+
+    }
+
+     stage('Build Kafka Service') {
+      steps {
+        script {
+          sh './gradlew clean'
+          sh './gradlew kafka-service:clean --info kafka-service:build --info'
+          sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          sh 'docker system prune --all -f'
+          sh "docker build -t kafka-service:latest -f ./kafka-service/Dockerfile.kafka-service.staging ."
+          sh "docker tag kafka-service:latest 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/kafka-service:latest"
+          sh "docker push 476917393332.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/kafka-service:latest"
+          sh "aws eks --region ${AWS_DEFAULT_REGION} update-kubeconfig --name vaultspay_dev_aws_eks_cluster "
+          def deploymentExists = sh(script: "kubectl get deployment kafka-service-deployment -n default", returnStatus: true)
+          if (deploymentExists == 0) {
+            sh "kubectl delete -f ./deployment/k8s/application/kafka-service.yml"
+          }
+            sh "kubectl apply  -f ./deployment/k8s/application/kafka-service.yml"
+        }
+      }
+
+    }
+
+
+  }
+}
