@@ -1,0 +1,109 @@
+
+image: gradle:7.4
+
+pipelines:
+  branches:
+    '**':
+      - parallel:
+        - step:
+            name: Run Tests - Vaultspay Microservices
+            caches:
+              - gradle
+            script:
+              -  gradle config-server:test
+              -  gradle discovery-server:test
+              -  gradle gateway:test
+              -  gradle auth-service:test
+              -  gradle banking-engine:test
+              -  gradle kafka-service:test
+              -  gradle rules-engine:test
+              -  gradle notification-service:test
+              -  gradle transaction-map:test
+              -  gradle transaction-control:test
+              -  gradle users-service:test
+              -  gradle payment-card-service:test
+            after-script:
+              - |
+                curl -X POST -H "Content-Type: application/json" -d '{
+                  "@type": "MessageCard",
+                  "@context": "http://schema.org/extensions",
+                  "summary": "Run Tests - Vaultspay Microservices",
+                  "sections": [
+                    {
+                      "activityTitle": "Run Tests - Vaultspay Microservices",
+                      "activityImage": "https://adaptivecards.io/content/cats/3.png",
+                      "activitySubtitle": "A push was initiated in repository ['"$BITBUCKET_REPO_SLUG"']('"$BITBUCKET_GIT_HTTP_ORIGIN"').  against branch ['"$BITBUCKET_BRANCH"']('"$BITBUCKET_GIT_HTTP_ORIGIN"/branch/"$BITBUCKET_BRANCH"').",
+                      "facts": [
+                        {
+                          "name": "Pipeline Status",
+                          "value": "'$(if [ "$BITBUCKET_EXIT_CODE" -ne 0 ]; then echo "Failed"; else echo "Passed"; fi)'"
+                        },
+                        {
+                          "name": "Pipeline Logs",
+                          "value": "[click here]('"$BITBUCKET_GIT_HTTP_ORIGIN"/pipelines/results/"$BITBUCKET_BUILD_NUMBER"')."
+                         }
+                      ],
+                      "text": "<mention>@malik ateeq</mention>"
+                    }
+
+                  ]
+                }' "https://vaultspay.webhook.office.com/webhookb2/ff8ebf62-e947-4c05-b29d-a111d968e292@4c6f4e8e-a806-4d15-bf8e-00bae315927d/IncomingWebhook/636d12f4c2d8440d88e9112dbb129057/9211cd0b-6cd4-4a93-ad04-1024be1bbdcf"
+
+
+        - step:
+            name: Check Styles - Vaultspay Microservices
+            caches:
+              - gradle
+            script:
+              # -  gradle config-server:checkstyleMain
+              # -  gradle discovery-server:checkstyleMain
+              # -  gradle gateway:checkstyleMain
+              -  gradle auth-service:checkstyleMain
+              -  gradle payment-card-service:checkstyleMain
+              -  gradle rules-engine:checkstyleMain
+              # -  gradle banking-engine:checkstyleMain
+              # -  gradle kafka-service:checkstyleMain
+              -  gradle notification-service:checkstyleMain
+              # -  gradle transaction-map:checkstyleMain
+              # -  gradle transaction-control:checkstyleMain
+              # -  gradle users-service:checkstyleMain
+            after-script:
+              - |
+                curl -X POST -H "Content-Type: application/json" -d '{
+                  "@type": "MessageCard",
+                  "@context": "http://schema.org/extensions",
+                  "summary": "Check Styles - Vaultspay Microservices",
+                  "sections": [
+                    {
+                      "activityTitle": "Check Styles - Vaultspay Microservices",
+                      "activityImage": "https://adaptivecards.io/content/cats/3.png",
+                      "activitySubtitle": "A push was initiated in repository ['"$BITBUCKET_REPO_SLUG"']('"$BITBUCKET_GIT_HTTP_ORIGIN"').  against branch ['"$BITBUCKET_BRANCH"']('"$BITBUCKET_GIT_HTTP_ORIGIN"/branch/"$BITBUCKET_BRANCH"').",
+                      "facts": [
+                        {
+                          "name": "Pipeline Status",
+                          "value": "'$(if [ "$BITBUCKET_EXIT_CODE" -ne 0 ]; then echo "Failed"; else echo "Passed"; fi)'"
+                        },
+                        {
+                          "name": "Pipeline Logs",
+                          "value": "[click here]('"$BITBUCKET_GIT_HTTP_ORIGIN"/pipelines/results/"$BITBUCKET_BUILD_NUMBER"')."
+                        }
+                      ],
+                      "text": "<mention>@malik ateeq</mention>"
+                    }
+
+                  ]
+                }' "https://vaultspay.webhook.office.com/webhookb2/ff8ebf62-e947-4c05-b29d-a111d968e292@4c6f4e8e-a806-4d15-bf8e-00bae315927d/IncomingWebhook/636d12f4c2d8440d88e9112dbb129057/9211cd0b-6cd4-4a93-ad04-1024be1bbdcf"
+
+
+
+        - step:
+            name: Trigger for Dev Branch Merge
+            script:
+              - |
+                if [ "${BITBUCKET_BRANCH}" == "dev" ] && [ "${BITBUCKET_PR_DESTINATION_BRANCH}" == "staging" ]; then
+                  echo "Skipping pipeline for PR from dev to staging."
+                  exit 0
+                fi
+# A6exKCYuKkB3RyMu (secret)
+# https://vaultspay.webhook.office.com/webhookb2/ff8ebf62-e947-4c05-b29d-a111d968e292@4c6f4e8e-a806-4d15-bf8e-00bae315927d/IncomingWebhook/636d12f4c2d8440d88e9112dbb129057/9211cd0b-6cd4-4a93-ad04-1024be1bbdcf
+
